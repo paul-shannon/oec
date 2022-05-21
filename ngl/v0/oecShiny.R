@@ -23,12 +23,12 @@ ui = fluidPage(
 )
 server = function(input, output) {
   output$structure <- renderNGLVieweR({
-    NGLVieweR("1crn") %>%
-      addRepresentation("cartoon", param = list(name = "cartoon", colorScheme="residueindex")) %>%
-      stageParameters(backgroundColor = "beige") %>%
-      setQuality("high") %>%
-      setFocus(0) %>%
-      setSpin(FALSE)
+    ngl <- NGLVieweR("1crn")
+    addRepresentation(ngl, "cartoon", param = list(name = "cartoon", colorScheme="residueindex")) %>%
+    stageParameters(ngl, backgroundColor = "beige") %>%
+    setQuality(ngl, "high") %>%
+    setFocus(ngl,0) %>%
+    setSpin(ngl, FALSE)
   })
   observeEvent(input$add, {
     NGLVieweR_proxy("structure") %>%
