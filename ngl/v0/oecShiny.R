@@ -1,6 +1,6 @@
 library(shiny)
 library(NGLVieweR)
-
+#----------------------------------------------------------------------------------------------------
 ui = fluidPage(
 
   tags$head(
@@ -21,27 +21,33 @@ ui = fluidPage(
     mainPanel(NGLVieweROutput("structure"))
   )
 )
+
+#----------------------------------------------------------------------------------------------------
 server = function(input, output) {
+
   output$structure <- renderNGLVieweR({
-    ngl <- NGLVieweR("1crn")
-    addRepresentation(ngl, "cartoon", param = list(name = "cartoon", colorScheme="residueindex")) %>%
-    stageParameters(ngl, backgroundColor = "beige") %>%
-    setQuality(ngl, "high") %>%
-    setFocus(ngl,0) %>%
-    setSpin(ngl, FALSE)
-  })
-  observeEvent(input$add, {
+    NGLVieweR("1crn") %>%
+      addRepresentation("cartoon", param = list(name = "cartoon", colorScheme="residueindex")) %>%
+      stageParameters(backgroundColor = "beige") %>%
+      setQuality("high") %>%
+      setFocus(0) %>%
+      setSpin(FALSE)
+      })
+
+    observeEvent(input$add, {
     NGLVieweR_proxy("structure") %>%
       addSelection(isolate(input$type),
                    param =
                      list(name="sel1",
                           sele=isolate(input$selection),
                           colorValue=isolate(input$color)))
-  })
+      })
 
   observeEvent(input$remove, {
     NGLVieweR_proxy("structure") %>%
       removeSelection("sel1")
-  })
-}
+      })
+
+} # server
+#----------------------------------------------------------------------------------------------------
 app <- shinyApp(ui, server)
