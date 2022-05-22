@@ -16,6 +16,8 @@ ui = fluidPage(
       selectInput("type", "Type", c("ball+stick", "cartoon", "backbone")),
       selectInput("color", "Color", c("orange", "grey", "white")),
       actionButton("add", "Add"),
+      actionButton("show", "Show"),
+      actionButton("hide", "Hide"),
       actionButton("remove", "Remove")
     ),
     mainPanel(NGLVieweROutput("structure"))
@@ -26,22 +28,37 @@ ui = fluidPage(
 server = function(input, output) {
 
   output$structure <- renderNGLVieweR({
-    NGLVieweR("1crn") %>%
-      addRepresentation("cartoon", param = list(name = "cartoon", colorScheme="residueindex")) %>%
-      stageParameters(backgroundColor = "beige") %>%
-      setQuality("high") %>%
-      setFocus(0) %>%
-      setSpin(FALSE)
-      })
+     nglViewer <- NGLVieweR("1crn")
+     addRepresentation(nglViewer, "cartoon", param = list(name = "cartoon", colorScheme="residueindex"))
+     stageParameters(nglViewer, backgroundColor = "beige")
+     setQuality(nglViewer, "high")
+     setFocus(nglViewer, 0)
+     setSpin(nglViewer, FALSE)
+     # return(nglViewer)
+     })
 
-    observeEvent(input$add, {
-    NGLVieweR_proxy("structure") %>%
-      addSelection(isolate(input$type),
+  #output$structure <- renderNGLVieweR({
+  #  NGLVieweR("1crn") %>%
+  #    addRepresentation("cartoon", param = list(name = "cartoon", colorScheme="residueindex")) %>%
+  #    stageParameters(backgroundColor = "beige") %>%
+  #    setQuality("high") %>%
+  #    setFocus(0) %>%
+  #    setSpin(FALSE)
+  #    })
+
+  observeEvent(input$add, {
+     NGLVieweR_proxy("structure") %>%
+        addSelection(isolate(input$type),
                    param =
                      list(name="sel1",
                           sele=isolate(input$selection),
                           colorValue=isolate(input$color)))
       })
+
+  observeEvent(input$hide, {
+     NGLVieweR_proxy("structure") %>%
+           updateVisibility("sel1", value = FALSE)})
+
 
   observeEvent(input$remove, {
     NGLVieweR_proxy("structure") %>%
