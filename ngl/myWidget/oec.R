@@ -1,6 +1,17 @@
 library(nglShiny)
 library(R6)
 #----------------------------------------------------------------------------------------------------
+# gnl selection language https://nglviewer.org/ngl/api/manual/usage/selection-language.html
+#
+# javascript navigations:
+# x = stage.getComponentsByName("1S5L").list[0]
+# x.removeAllRepresentations()
+# x.addRepresentation("ball+stick", {sele: "34-41"})
+# x.addRepresentation("ball+stick", {sele: "1-40028"})
+# x.addRepresentation("cartoon", {sele: ":A"})
+# x.addRepresentation("surface", {sele: ".MN1 .MN2 .MN3 .MN4"})
+# x.addRepresentation("line", {sele: "[OEC] AND :A"})   just the OEC in chain A
+# x.getRepresentationsByName(repName).setVisibility(newState)
 buttonStyle <- "margin: 5px; font-size: 20px; background-color:white"
 textOutputStyle <- paste0("margin:20px; margin-left: 50px;",
 		          " padding:5px; width: 200px; height: 60px; color:red; ",
@@ -21,20 +32,25 @@ components=list(
            colorScheme="residueIndex",
            visible=TRUE),
     A.ballStick=list(name="A",
-           selection=":A",
-           representation="ball+stick",
-           colorScheme="residueIndex",
-           visible=TRUE),
+                     selection=":A",
+                     representation="ball+stick",
+                     colorScheme="residueIndex",
+                     visible=TRUE),
     OEC.spacefill=list(name="OEC.spacefill",
-                   selection="OEC AND :A",
-                   representation="spacefill", #"line",
-                   colorScheme="element",
-                   visible=TRUE),
+                       selection="OEC AND :A",
+                       representation="spacefill", #"line",
+                       colorScheme="element",
+                       visible=TRUE),
     OEC.line=list(name="OEC.line",
-                   selection="OEC AND :A",
-                   representation="line",
-                   colorScheme="element",
-                   visible=TRUE)
+                  selection="OEC AND :A",
+                  representation="line",
+                  colorScheme="element",
+                  visible=TRUE),
+    chlorophyll.A=list(name="CLA",
+                       selection="CLA AND :A",
+                       representation="ball+stick",
+                       colorScheme="element",
+                       visible=FALSE)
     ) # components
 
 #----------------------------------------------------------------------------------------------------
@@ -48,7 +64,8 @@ OECApp = R6Class("OECApp",
                    defaultRepresentation=NULL,
                    pdbID=NULL,
                    options.oec=NULL,
-                   ngl.widget=NULL
+                   ngl.widget=NULL,
+                   spinState=NULL
                    ),
 
     #--------------------------------------------------------------------------------
@@ -58,7 +75,7 @@ OECApp = R6Class("OECApp",
             print(noquote(sprintf("initializing OEC")))
             options.1s5l <- list(pdbID="1S5L", htmlContainer="nglShiny_1s5l", namedComponents=components)
             private$ngl.widget <- nglShiny(options.1s5l, 300, 300) #, elementId="nglShiny_1s5l")
-
+            private$spinState <- FALSE
             },
 
         #------------------------------------------------------------
@@ -73,16 +90,20 @@ OECApp = R6Class("OECApp",
                                     sidebarLayout(
                                         sidebarPanel(
                                             actionButton("fitButton", "Fit"),
+                                            actionButton("spinButton", "Spin"),
                                             actionButton("hideAllButton", "Hide All"),
                                             actionButton("showAllButton", "Show All"),
                                             br(), br(),
                                             h5("Domains"),
-                                            actionButton("toggleAVisibilityButton", "A (cartoon)"),
+                                            actionButton("toggleA.cartoonButton", "A (cartoon)"),
                                             br(),
                                             actionButton("toggleA.ballStick.VisibilityButton", "A (ball+stick)"),
                                             br(),
                                             actionButton("toggleOEC.spacefill.VisibilityButton", "OEC (spacefill)"),
+                                            br(),
                                             actionButton("toggleOEC.line.VisibilityButton", "OEC (line)"),
+                                            br(),
+                                            actionButton("toggle.chlorophyll.A", "CHL A"),
                                             width=2),
                                         mainPanel(nglShinyOutput('nglShiny_1s5l'),width=10)
                                     ),   # sidebarLayout
@@ -97,6 +118,11 @@ OECApp = R6Class("OECApp",
                fit(session, htmlContainer="nglShiny_1s5l")
                })
 
+            observeEvent(input$spinButton, ignoreInit=TRUE, {
+               private$spinState <- !private$spinState
+               spin(session, private$spinState)
+               })
+
             observeEvent(input$defaultViewButton, ignoreInit=TRUE, {
                session$sendCustomMessage(type="removeAllRepresentations", message=list())
                session$sendCustomMessage(type="setRepresentation", message=list(defaultRepresentation))
@@ -104,7 +130,7 @@ OECApp = R6Class("OECApp",
                session$sendCustomMessage(type="fit", message=list())
                })
 
-            observeEvent(input$toggleAVisibilityButton, ignoreInit=TRUE, {
+            observeEvent(input$toggleA.cartoonButton, ignoreInit=TRUE, {
                newState <- !components$A$visible
                components$A$visible <<- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "A", newState)
@@ -128,6 +154,12 @@ OECApp = R6Class("OECApp",
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.line", newState)
                })
 
+            observeEvent(input$chlorophyll.A, ignoreInit=TRUE, {
+               newState <- !components$chlorophyll.A$visible
+               components$chlorophyll.A$visible <<- newState
+               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA", newState)
+               })
+
             observeEvent(input$hideAllButton, ignoreInit=TRUE, {
                components$A$visible <<- FALSE
                components$A.ballStick$visible <<- FALSE
@@ -137,6 +169,7 @@ OECApp = R6Class("OECApp",
                setVisibility(session, htmlContainer="nglShiny_1s5l", "A.ballStick", FALSE)
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.line", FALSE)
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.spacefill", FALSE)
+               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA", FALSE)
                })
 
             observeEvent(input$showAllButton, ignoreInit=TRUE, {
@@ -148,6 +181,7 @@ OECApp = R6Class("OECApp",
                setVisibility(session, htmlContainer="nglShiny_1s5l", "A.ballStick", TRUE)
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.line", TRUE)
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.spacefill", TRUE)
+               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA", TRUE)
                })
 
             observeEvent(input$pdbSelector, ignoreInit=TRUE, {
