@@ -214,6 +214,6 @@ deploy <- function()
 } # deploy
 #----------------------------------------------------------------------------------------------------
 #runApp(shinyApp(ui=ui, server=server), port=5671)
-shinyApp(ui=ui, server=server)
+runApp(shinyApp(ui=ui, server=server))
 
 
