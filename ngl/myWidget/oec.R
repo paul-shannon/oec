@@ -28,6 +28,11 @@ library(R6)
 # x.getRepresentationsByName(repName).setVisibility(newState)
 #  pick out one chlorophyll molecule:
 #      x.addRepresentation("ball+stick", {sele: "[CLA] AND 352 AND :A"})
+#
+# center (autoview) on a representation: autoView is a method on the component(the loaded structure)
+# don't know if there is more than one component (no subcomponents) in normal use.
+#  stage.getComponentsByName('1S5L').autoView("OEC AND :A")
+#
 buttonStyle <- "margin: 5px; font-size: 20px; background-color:white"
 textOutputStyle <- paste0("margin:20px; margin-left: 50px;",
 		          " padding:5px; width: 200px; height: 60px; color:red; ",
@@ -137,7 +142,7 @@ OECApp = R6Class("OECApp",
                                             actionButton("hideAllButton", "Hide All"),
                                             actionButton("showAllButton", "Show All"),
                                             br(), br(),
-                                            h5("Domains"),
+                                            h5("Visibility"),
                                             actionButton("toggleA.cartoon.button", "A (cartoon)"),
                                             br(),
                                             actionButton("toggleA.ballStick.button", "A (ball+stick)"),
@@ -150,6 +155,13 @@ OECApp = R6Class("OECApp",
                                             actionButton("toggle.chlorophyll.349", "CHL 349"),
                                             actionButton("toggle.chlorophyll.350", "CHL 350"),
                                             actionButton("toggle.chlorophyll.352", "CHL 352"),
+                                            h5("Center"),
+                                            actionButton("center.A", "A"),
+                                            actionButton("center.OEC", "OEC"),
+                                            actionButton("center.CHL348", "CHL 348"),
+                                            actionButton("center.CHL349", "CHL 349"),
+                                            actionButton("center.CHL350", "CHL 350"),
+                                            actionButton("center.CHL352", "CHL 352"),
                                             width=2),
                                         mainPanel(nglShinyOutput('nglShiny_1s5l'),width=10)
                                     ),   # sidebarLayout
@@ -223,6 +235,26 @@ OECApp = R6Class("OECApp",
                private$components$CLA.352$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.352", newState)
                })
+
+            observeEvent(input$center.OEC, ignoreInit=TRUE, {
+               center(session, htmlContainer="nglShiny_1s5l", "OEC AND :A")
+               })
+            observeEvent(input$center.A, ignoreInit=TRUE, {
+               center(session, htmlContainer="nglShiny_1s5l", ":A")
+               })
+            observeEvent(input$center.CHL348, ignoreInit=TRUE, {
+               center(session, htmlContainer="nglShiny_1s5l", "[CLA] AND 348 AND :A")
+               })
+            observeEvent(input$center.CHL349, ignoreInit=TRUE, {
+               center(session, htmlContainer="nglShiny_1s5l", "[CLA] AND 349 AND :A")
+               })
+            observeEvent(input$center.CHL350, ignoreInit=TRUE, {
+               center(session, htmlContainer="nglShiny_1s5l", "[CLA] AND 350 AND :A")
+               })
+            observeEvent(input$center.CHL352, ignoreInit=TRUE, {
+               center(session, htmlContainer="nglShiny_1s5l", "[CLA] AND 352 AND :A")
+               })
+
             observeEvent(input$hideAllButton, ignoreInit=TRUE, {
                components <- names(private$components)
                for(component in components){
