@@ -134,7 +134,7 @@ OECApp = R6Class("OECApp",
                         tags$link(rel="icon", href="data:;base64,iVBORw0KGgo=")
                         ),
                tabsetPanel(type = "tabs",
-                           tabPanel("PhyB",
+                           tabPanel("Photosystem II with OEC",
                                     sidebarLayout(
                                         sidebarPanel(
                                             actionButton("fitButton", "Fit"),
@@ -165,7 +165,8 @@ OECApp = R6Class("OECApp",
                                             width=2),
                                         mainPanel(nglShinyOutput('nglShiny_1s5l'),width=10)
                                     ),   # sidebarLayout
-                                    ) # PhyB tabPanel
+                                    ), # photosystem II tabPanel
+                             tabPanel("OEC: 'most precious of all jewels'", includeHTML("oec.html"))
                            ) # tabsetPanel
                )}, # ui
 
