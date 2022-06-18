@@ -41,50 +41,59 @@ defaultRepresentation <- "cartoon"
 defaultColorScheme <- "residueIndex"
 
 #----------------------------------------------------------------------------------------------------
-components=list(
-    A=list(name="A",
-           selection=":A",
-           representation="cartoon",
-           colorScheme="residueIndex",
-           visible=TRUE),
-    A.ballStick=list(name="A",
-                     selection=":A",
+setup.components <- function()
+{
+   list(
+       A.cartoon=list(name="A.cartoon",
+              selection=":A",
+              representation="cartoon",
+              colorScheme="residueIndex",
+              visible=TRUE),
+
+       A.ballStick=list(name="A.ballStick",
+                        selection=":A",
+                        representation="ball+stick",
+                        colorScheme="residueIndex",
+                        visible=FALSE),
+
+       OEC.spacefill=list(name="OEC.spacefill",
+                          selection="OEC AND :A",
+                          representation="spacefill", #"line",
+                          colorScheme="element",
+                          visible=TRUE),
+
+       OEC.line=list(name="OEC.line",
+                     selection="OEC AND :A",
                      representation="ball+stick",
-                     colorScheme="residueIndex",
+                     colorScheme="element",
                      visible=TRUE),
-    OEC.spacefill=list(name="OEC.spacefill",
-                       selection="OEC AND :A",
-                       representation="spacefill", #"line",
-                       colorScheme="element",
-                       visible=TRUE),
-    OEC.line=list(name="OEC.line",
-                  selection="OEC AND :A",
-                  representation="line",
-                  colorScheme="element",
-                  visible=TRUE),
-    chlorophyll.348=list(name="CLA.348",
-                       selection="[CLA] AND 348 AND :A",
-                       representation="ball+stick",
-                       colorScheme="element",
-                       visible=TRUE),
 
-    chlorophyll.349=list(name="CLA.349",
-                       selection="[CLA] AND 349 AND :A",
-                       representation="ball+stick",
-                       colorScheme="element",
-                       visible=TRUE),
-    chlorophyll.350=list(name="CLA.350",
-                       selection="[CLA] AND 350 AND :A",
-                       representation="ball+stick",
-                       colorScheme="element",
-                       visible=TRUE),
-    chlorophyll.352=list(name="CLA.352",
-                       selection="[CLA] AND 352 AND :A",
-                       representation="ball+stick",
-                       colorScheme="element",
-                       visible=TRUE)
-    ) # components
+       CLA.348=list(name="CLA.348",
+                    selection="[CLA] AND 348 AND :A",
+                    representation="ball+stick",
+                    colorScheme="element",
+                    visible=TRUE),
 
+       CLA.349=list(name="CLA.349",
+                    selection="[CLA] AND 349 AND :A",
+                    representation="ball+stick",
+                    colorScheme="element",
+                    visible=TRUE),
+
+       CLA.350=list(name="CLA.350",
+                    selection="[CLA] AND 350 AND :A",
+                    representation="ball+stick",
+                    colorScheme="element",
+                    visible=TRUE),
+
+       CLA.352=list(name="CLA.352",
+                    selection="[CLA] AND 352 AND :A",
+                    representation="ball+stick",
+                    colorScheme="element",
+                    visible=TRUE)
+        ) # list
+
+} # setup.components
 #----------------------------------------------------------------------------------------------------
 OECApp = R6Class("OECApp",
 
@@ -105,8 +114,10 @@ OECApp = R6Class("OECApp",
 
         initialize = function(){
             print(noquote(sprintf("initializing OEC")))
-            options.1s5l <- list(pdbID="1S5L", htmlContainer="nglShiny_1s5l", namedComponents=components)
-            private$ngl.widget <- nglShiny(options.1s5l, 300, 300) #, elementId="nglShiny_1s5l")
+            private$components <- setup.components()
+            options.1s5l <- list(pdbID="1S5L", htmlContainer="nglShiny_1s5l",
+                                 namedComponents=private$components)
+            private$ngl.widget <- nglShiny(options.1s5l, 300, 300)
             private$spinState <- FALSE
             },
 
@@ -127,15 +138,15 @@ OECApp = R6Class("OECApp",
                                             actionButton("showAllButton", "Show All"),
                                             br(), br(),
                                             h5("Domains"),
-                                            actionButton("toggleA.cartoonButton", "A (cartoon)"),
+                                            actionButton("toggleA.cartoon.button", "A (cartoon)"),
                                             br(),
-                                            actionButton("toggleA.ballStick.VisibilityButton", "A (ball+stick)"),
+                                            actionButton("toggleA.ballStick.button", "A (ball+stick)"),
                                             br(),
                                             actionButton("toggleOEC.spacefill.VisibilityButton", "OEC (spacefill)"),
                                             br(),
                                             actionButton("toggleOEC.line.VisibilityButton", "OEC (line)"),
                                             br(),
-                                            actionButton("toggle.chlorophyll.348", "CHL 348"),
+                                            actionButton("toggle.CLA.348", "CHL 348"),
                                             actionButton("toggle.chlorophyll.349", "CHL 349"),
                                             actionButton("toggle.chlorophyll.350", "CHL 350"),
                                             actionButton("toggle.chlorophyll.352", "CHL 352"),
@@ -165,79 +176,70 @@ OECApp = R6Class("OECApp",
                session$sendCustomMessage(type="fit", message=list())
                })
 
-            observeEvent(input$toggleA.cartoonButton, ignoreInit=TRUE, {
-               newState <- !components$A$visible
-               components$A$visible <<- newState
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "A", newState)
+            observeEvent(input$toggleA.cartoon.button, ignoreInit=TRUE, {
+
+               newState <- !private$components$A.cartoon$visible
+               private$components$A.cartoon$visible <- newState
+               setVisibility(session, htmlContainer="nglShiny_1s5l", "A.cartoon", newState)
                })
 
-            observeEvent(input$toggleA.ballStick.VisibilityButton, ignoreInit=TRUE, {
-               newState <- !components$A.ballStick$visible
-               components$A.ballStick$visible <<- newState
+            observeEvent(input$toggleA.ballStick.button, ignoreInit=TRUE, {
+               printf("A.ballStick.button click")
+               newState <- !private$components$A.ballStick$visible
+               private$components$A.ballStick$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "A.ballStick", newState)
                })
 
             observeEvent(input$toggleOEC.spacefill.VisibilityButton, ignoreInit=TRUE, {
-               newState <- !components$OEC.spacefill$visible
-               components$OEC.spacefill$visible <<- newState
+               newState <- !private$components$OEC.spacefill$visible
+               private$components$OEC.spacefill$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.spacefill", newState)
                })
 
             observeEvent(input$toggleOEC.line.VisibilityButton, ignoreInit=TRUE, {
-               newState <- !components$OEC.line$visible
-               components$OEC.line$visible <<- newState
+               newState <- !private$components$OEC.line$visible
+               private$components$OEC.line$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.line", newState)
                })
 
-            observeEvent(input$toggle.chlorophyll.348, ignoreInit=TRUE, {
-               newState <- !components$chlorophyll.348$visible
-               components$chlorophyll.348$visible <<- newState
+            observeEvent(input$toggle.CLA.348, ignoreInit=TRUE, {
+               newState <- !private$components$CLA.348$visible
+               private$components$CLA.348$visible <<- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.348", newState)
                })
 
             observeEvent(input$toggle.chlorophyll.349, ignoreInit=TRUE, {
-               newState <- !components$chlorophyll.349$visible
-               components$chlorophyll.349$visible <<- newState
+               newState <- !private$components$CLA.349$visible
+               private$components$CLA.349$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.349", newState)
                })
             observeEvent(input$toggle.chlorophyll.350, ignoreInit=TRUE, {
-               newState <- !components$chlorophyll.350$visible
-               components$chlorophyll.350$visible <<- newState
+               newState <- !private$components$CLA.350$visible
+               private$components$CLA.350$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.350", newState)
                })
             observeEvent(input$toggle.chlorophyll.352, ignoreInit=TRUE, {
-               newState <- !components$chlorophyll.352$visible
-               components$chlorophyll.352$visible <<- newState
+               newState <- !private$components$CLA.352$visible
+               private$components$CLA.352$visible <- newState
                setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.352", newState)
                })
             observeEvent(input$hideAllButton, ignoreInit=TRUE, {
-               components$A$visible <<- FALSE
-               components$A.ballStick$visible <<- FALSE
-               components$OEC.line$visible <<- FALSE
-               components$OEC.spacefill$visible <<- FALSE
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "A", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "A.ballStick", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.line", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.spacefill", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.349", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.350", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.352", FALSE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.348", FALSE)
+               components <- names(private$components)
+               for(component in components){
+                  printf("--- hiding %s", component)
+                  private$components[[component]]$visible <- FALSE
+                  setVisibility(session, htmlContainer="nglShiny_1s5l", component, FALSE)
+                  } # for component
                })
 
             observeEvent(input$showAllButton, ignoreInit=TRUE, {
-               components$A$visible <<- TRUE
-               components$A.ballStick$visible <<- TRUE
-               components$OEC.line$visible <<- TRUE
-               components$OEC.spacefill$visible <<- TRUE
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "A", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "A.ballStick", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.line", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "OEC.spacefill", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.349", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.350", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.352", TRUE)
-               setVisibility(session, htmlContainer="nglShiny_1s5l", "CLA.348", TRUE)
+               components <- names(private$components)
+               for(component in components){
+                  if(component == "A.ballStick") next;
+                  printf("--- showing %s", component)
+                  private$components[[component]]$visible <- TRUE
+                  setVisibility(session, htmlContainer="nglShiny_1s5l", component, TRUE)
+                  } # for component
                })
 
             observeEvent(input$pdbSelector, ignoreInit=TRUE, {
