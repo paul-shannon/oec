@@ -1,6 +1,8 @@
 library(nglShiny)
 library(R6)
 #----------------------------------------------------------------------------------------------------
+printf <- function(...) print(noquote(sprintf(...)))
+#----------------------------------------------------------------------------------------------------
 # gnl selection language https://nglviewer.org/ngl/api/manual/usage/selection-language.html
 #
 # javascript navigations:
@@ -131,18 +133,20 @@ OECApp = R6Class("OECApp",
            fluidPage(
                tags$head(
                         tags$style("#nglShiny_1s5l{height:90vh !important;}"),
+                        tags$style(".nav-tabs{font-size: 24px;}"),
                         tags$link(rel="icon", href="data:;base64,iVBORw0KGgo=")
                         ),
                tabsetPanel(type = "tabs",
                            tabPanel("Photosystem II with OEC",
                                     sidebarLayout(
                                         sidebarPanel(
+                                            actionButton("demoButton", "Demo"),
                                             actionButton("fitButton", "Fit"),
-                                            actionButton("spinButton", "Spin"),
+                                            actionButton("spinButton", "Spin start/stop"),
                                             actionButton("hideAllButton", "Hide All"),
                                             actionButton("showAllButton", "Show All"),
                                             br(), br(),
-                                            h5("Visibility"),
+                                            h5("Show/Hide"),
                                             actionButton("toggleA.cartoon.button", "A (cartoon)"),
                                             br(),
                                             actionButton("toggleA.ballStick.button", "A (ball+stick)"),
@@ -155,7 +159,7 @@ OECApp = R6Class("OECApp",
                                             actionButton("toggle.chlorophyll.349", "CHL 349"),
                                             actionButton("toggle.chlorophyll.350", "CHL 350"),
                                             actionButton("toggle.chlorophyll.352", "CHL 352"),
-                                            h5("Center"),
+                                            h5("Zoom To"),
                                             actionButton("center.A", "A"),
                                             actionButton("center.OEC", "OEC"),
                                             actionButton("center.CHL348", "CHL 348"),
@@ -172,6 +176,14 @@ OECApp = R6Class("OECApp",
 
         #------------------------------------------------------------
         server = function(input, output, session){
+
+            observeEvent(input$demoButton, ignoreInit=TRUE, {
+               fit(session, htmlContainer="nglShiny_1s5l")
+               center(session, htmlContainer="nglShiny_1s5l", "OEC AND :A")
+               setCameraDistance(session, htmlContainer="nglShiny_1s5l", 50)
+               private$spinState <- TRUE
+               spin(session, TRUE)
+               })
 
             observeEvent(input$fitButton, ignoreInit=TRUE, {
                fit(session, htmlContainer="nglShiny_1s5l")
@@ -309,26 +321,22 @@ deploy <-function()
 {
    repos <- options("repos")[[1]]
    stopifnot(sort(names(repos)) == c("BioCann", "BioCsoft", "CRAN"))
-   stopifnot(repos$BioCann=="https://bioconductor.org/packages/3.13/data/annotation")
-   stopifnot(repos$BioCsoft=="https://bioconductor.org/packages/3.13/bioc")
+   stopifnot(repos$BioCann=="https://bioconductor.org/packages/3.15/data/annotation")
+   stopifnot(repos$BioCsoft=="https://bioconductor.org/packages/3.15/bioc")
    stopifnot(repos$CRAN=="https://cran.microsoft.com")
    require(devtools)
 
-      # jim hester suggests, with reference
-      # Setting R_REMOTES_NO_ERRORS_FROM_WARNINGS="false" will cause warning
-      # messages during calls to install.packages() to become errors. Often warning
-      # messages are caused by dependencies failing to install.
-   Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = "true")
+   Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS=FALSE)
 
+   install_github("paul-shannon/nglShiny", force=TRUE)
    require(rsconnect)
-   #rsconnect::showLogs(appName="tinyOEC", streaming=TRUE)
-
    deployApp(account="paulshannon",
-              appName="tinyOEC",
-              appTitle="tiny OEC",
-              appFiles=c("tinyOEC.R"),
-              appPrimaryDoc="tinyOEC.R"
-              )
+             appName="OECapp",
+             appTitle="Oxygen-evolving complex",
+             appFiles=c("oec.R", "oec.html"),
+             appPrimaryDoc="oec.R",
+             forceUpdate=TRUE
+             )
 
 } # deploy
 #------------------------------------------------------------------------------------------------------------------------
