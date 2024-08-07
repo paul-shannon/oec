@@ -319,11 +319,11 @@ OECApp = R6Class("OECApp",
 #--------------------------------------------------------------------------------
 deploy <-function()
 {
-   repos <- options("repos")[[1]]
-   stopifnot(sort(names(repos)) == c("BioCann", "BioCsoft", "CRAN"))
-   stopifnot(repos$BioCann=="https://bioconductor.org/packages/3.15/data/annotation")
-   stopifnot(repos$BioCsoft=="https://bioconductor.org/packages/3.15/bioc")
-   stopifnot(repos$CRAN=="https://cran.microsoft.com")
+   options(repos = c(
+     BioCann="https://bioconductor.org/packages/3.19/data/annotation",
+     BioCsoft="https://bioconductor.org/packages/3.19/bioc",
+     CRAN="https://cran.microsoft.com"))
+
    require(devtools)
 
    Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS=FALSE)
